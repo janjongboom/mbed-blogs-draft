@@ -1,25 +1,25 @@
 # Physical Web and Web Bluetooth on mbed os
 
-One of the questions we're facing as IoT developers is: 'how can we make users interact with our devices?'. The standard way of solving that issue for the past years, is to create an app to accompany your device, but with the vast rise of devices around you it gets harder and harder to convince users to install 'yet another app'™. And that is under the assumption that your users even know about your device...
+One of the questions we're facing as IoT developers is: 'how can we make users interact with our devices?'. The standard way of solving that issue for the past few years has been to create an app to accompany your device, but with the vast rise of devices around you it gets harder and harder to convince users to install *'yet another app™'*. Of course, that is under the assumption that your users even know about your device...
 
-Thus, we might need a better story for dealing with IoT devices around us. Not just interacting with them, but also find a better way of discovering devices. In that light it's very interesting that starting with [Chrome 48 for Android](http://www.androidpolice.com/2015/11/21/chrome-dev-48-rolls-out-with-early-bluetooth-web-api-support-on-chrome-os-dev-channel-and-android-marshmallow/) (which is planned to launch mid-March) Google is adding two new features to their browser, which will tackle both these issues.
+Thus, we might need a better story for dealing with IoT devices around us. Not just interacting with them, but also finding a better way of discovering devices. In that light it's very interesting that starting with [Chrome 48 for Android](http://www.androidpolice.com/2015/11/21/chrome-dev-48-rolls-out-with-early-bluetooth-web-api-support-on-chrome-os-dev-channel-and-android-marshmallow/) (which is planned to launch mid-March) Google is adding two new features to their browser, which will tackle both these issues.
 
-First, they are adding [Physical Web](https://google.github.io/physical-web/), which integrates into the operating system, and will show Bluetooth Beacons are around you. Using the [Eddystone-URL](https://developers.google.com/beacons/?hl=en) protocol, this allows you to use cheap Bluetooth Low Energy beacons to broadcast URLs that allow you to interact with the outside world. This can range from a payment portal for a parking meter; to a web application that allows you to control a new toy. This already is very interesting, but Google is also adding support for [Web Bluetooth](https://www.w3.org/community/web-bluetooth/), allowing web applications to talk to Bluetooth Low Energy devices.
+First, they are adding [Physical Web](https://google.github.io/physical-web/), which integrates into the operating system, and will show Bluetooth Beacons that are around you. Using the [Eddystone-URL](https://developers.google.com/beacons/?hl=en) protocol, this allows you to use cheap Bluetooth Low Energy beacons to broadcast URLs that allow you to interact with the outside world. This can range from a payment portal for a parking meter to a web application that allows you to control a new toy. This is already very interesting, but Google is also adding support for [Web Bluetooth](https://www.w3.org/community/web-bluetooth/), allowing web applications to talk to Bluetooth Low Energy devices.
 
-These two features in itself are absolutely great, but combined they offer a unique feature set for IoT developers.
+These two features in themselves are absolutely great, but combined they offer a unique feature set for IoT developers.
 
-1. Have your device broadcast a URL, so it will be discovered by users close to it.
+1. Have your device broadcast a URL so it will be discovered by users close to it.
 2. On this URL, have a web application that can control your device.
 
-Boom. Now we solved both the discoverability problem, and users won't need to install your app anymore. Going from seeing the device in the physical world, to interacting with it now happens in seconds! To demonstrate, here is a video of discovering and flying a Parrot drone this way:
+Boom. Now we solved both the discoverability problem, and users won't need to install your app anymore. Going from seeing the device in the physical world, to interacting with it now happens in seconds! To demonstrate, here is a video of discovering and flying a Parrot drone in this way:
 
 <iframe width="560" height="315" src="//www.youtube.com/embed/yILD_ZdXJW4" frameborder="0" allowfullscreen></iframe>
 
 ## Eddystone beacons are non-connectable
 
-An issue we're facing however when writing this code from an embedded perspective, is that Eddystone beacons are, well, beacons. Their job is to sit in a location and broadcast advertisement packages. Thus we cannot connect over GATT to them to interact. Adding to the complexity, there is no room in the Eddystone protocol to send a list of GATT Service UUIDs, so other applications cannot detect our features anyway. This very much limits their usability. But, as we're all developers, let's hack around this.
+However, an issue we're facing when writing this code from an embedded perspective, is that Eddystone beacons are, well, beacons. Their job is to sit in a location and broadcast advertisement packages. Thus we cannot connect over GATT to them to interact. Adding to the complexity, there is no room in the Eddystone protocol to send a list of GATT Service UUIDs, so other applications cannot detect our features anyway. This very much limits their usability. But, as we're all developers, let's hack around this.
 
-As part of the [BLE Examples repository](https://github.com/ARMmbed/ble-examples/tree/master/BLE_EddystoneService/source) there is an excellent Eddystone library that runs on mbed os. Recently my colleague Andres Amaya Garcia has added some new features to the library that adds [frame scheduling](https://github.com/ARMmbed/ble-examples/pull/47). This feature is intended to be used to allow a beacon to broadcast (for example) both URLs and Telemetry data, which is achieved by sending different advertisement packages from the same beacon.
+As part of the [BLE Examples repository](https://github.com/ARMmbed/ble-examples/tree/master/BLE_EddystoneService/source) there is an excellent Eddystone library that runs on mbed OS. Recently my colleague Andres Amaya Garcia has added some new features to the library that adds [frame scheduling](https://github.com/ARMmbed/ble-examples/pull/47). This feature is intended to be used to allow a beacon to broadcast (for example) both URLs and telemetry data, which is achieved by sending different advertisement packages from the same beacon.
 
 That's just what we need if we want a beacon to be both a Physical Web / Eddystone URL beacon, and a connectable Bluetooth device. Every 500 ms. we can broadcast a URL, and 500 ms. later we can broadcast a normal Bluetooth frame. This is nicely wrapped up in the following [library](https://github.com/web-bluetooth/juggling/tree/ee6b224/firmware/source/eddystone). You can add the 'eddystone' folder to your 'source' directory in your mbed os project, and then initialize the library like this:
 
@@ -93,9 +93,9 @@ void app_start(int, char**) {
 
 ## Seeing it all come together
 
-To verify that everything works, you'll need a phone that runs Android 6 or higher, and install [Chrome Dev](https://play.google.com/store/apps/details?id=com.chrome.dev&hl=en_GB). After installation, navigate to chrome://flags#enable-physical-web and chrome://flags/#enable-web-bluetooth to enable both features. When you'll now pull down the drawer you'll see that there are Physical Web beacons nearby and see the URL listed.
+To verify that everything works, you'll need a phone that runs Android 6 or higher, and install [Chrome Dev](https://play.google.com/store/apps/details?id=com.chrome.dev&hl=en_GB). After installation, navigate to chrome://flags#enable-physical-web and chrome://flags/#enable-web-bluetooth to enable both features. Now, when you pull down the drawer you'll see that there are Physical Web beacons nearby and see the URL listed.
 
-![Look ma, I've a URL!](assets/physical3.jpg)
+![Look ma, I have a URL!](assets/physical3.jpg)
 
 We can now write a small web application that utilizes Web Bluetooth to verify that we can connect to the device.
 
@@ -135,11 +135,11 @@ When we navigate to the page and hit 'Go Bluetooth' we'll be presented with a li
 
 ![Not just an Eddystone beacon, we're also a legit BLE device](assets/physical1.jpg)
 
-And after we hit 'Pair', a connection is made and we can start reading and writing characteristics.
+After we hit 'Pair', a connection is made and we can start reading and writing characteristics.
 
 ![We're paired and ready to go](assets/physical2.jpg)
 
-I expect that the Pairing step will no longer be necessary when connecting via a Physical Web URL when everything is ready, but for now this will be necessary.
+I expect that the Pairing step will no longer be necessary when connecting via a Physical Web URL when everything is ready, but for now this is necessary.
 
 ## Conclusion
 
